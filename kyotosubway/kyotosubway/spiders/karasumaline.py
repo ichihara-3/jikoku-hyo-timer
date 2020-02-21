@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
+import logging
 import scrapy
 
 
@@ -23,29 +24,37 @@ class KarasumalineSpider(scrapy.Spider):
     def parse_table(self, response, updown):
         timetable = {
             "station": " ".join(response.css("div.tt-hed-title::text").extract())
-            + updown
-            + "方面",
-            "times": {},
+            + "方面 "
+            + "(" + updown + ")",
+            "times": [],
         }
         for line in response.css("table tr.time.wektime"):
             hour = line.css("td.heijitsu-tt h3::text").get()
-            timetable["times"][hour] = []
-            for minute in line.css("td"):
-                timetable["times"][hour].extend(
-                    minute.css("span.disptnwek::text").getall()
-                )
+            for td in line.css("td"):
+                for n in td.css("span.disptnwek"):
+                    minute = n.css('::text').get()
+                    if not minute.isdigit():
+                        continue
+                    dest_keyword = n.xpath('//span/span/span/text()').get()
+                    departure = Departure(hour=int(hour), minute=int(minute), destination=dest_keyword)
+                    timetable["times"].append({'time': departure.time.strftime('%H:%M'), 'dest': departure.destination})
+
         yield timetable
 
 
 class Departure:
     def __init__(self, **kwargs):
-        self._time: datetime.time = kwargs.get("time")
+        self._hour: int = kwargs.get("hour") % 24
+        self._minute: int = kwargs.get("minute") % 60
         self._destination: String = kwargs.get("destination")
+
+    def __str__(self):
+        return self.time.strftime('%H:%M')
 
     @property
     def time(self) -> datetime.time:
-        return self._time
+        return datetime.time(hour=self._hour, minute=self._minute)
 
-    @time.getter
-    def time(self, item: datetime.time):
-        self._time = item
+    @property
+    def destination(self) -> str:
+        return self._destination
