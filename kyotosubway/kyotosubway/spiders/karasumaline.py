@@ -10,11 +10,11 @@ class KarasumalineSpider(scrapy.Spider):
     start_urls = ["http://www2.city.kyoto.lg.jp/kotsu/tikadia/hyperdia/line02.htm"]
 
     def parse(self, response):
-        # 上り
-        for a in response.css("td a[title*=国際会館方面]"):
-            yield response.follow(
-                a, cb_kwargs={"updown": "上り"}, callback=self.parse_table
-            )
+        # # 上り
+        # for a in response.css("td a[title*=国際会館方面]"):
+        #     yield response.follow(
+        #         a, cb_kwargs={"updown": "上り"}, callback=self.parse_table
+        #     )
         # 下り
         for a in response.css("td a[title*=近鉄奈良方面]"):
             yield response.follow(
@@ -31,11 +31,12 @@ class KarasumalineSpider(scrapy.Spider):
         for line in response.css("table tr.time.wektime"):
             hour = line.css("td.heijitsu-tt h3::text").get()
             for td in line.css("td"):
-                for n in td.css("span.disptnwek"):
-                    minute = n.css('::text').get()
+                for span in td.css("span.disptnwek"):
+                    minute = span.css('::text').get()
                     if not minute.isdigit():
                         continue
-                    dest_keyword = n.xpath('//span/span/span/text()').get()
+                    dest_keyword = span.css('span span span::text').get()
+                    logging.debug(dest_keyword)
                     departure = Departure(hour=int(hour), minute=int(minute), destination=dest_keyword)
                     timetable["times"].append({'time': departure.time.strftime('%H:%M'), 'dest': departure.destination})
 
