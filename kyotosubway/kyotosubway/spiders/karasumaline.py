@@ -3,6 +3,8 @@ import datetime
 import logging
 import scrapy
 
+from kyotosubway.items import KyotosubwayItem
+
 
 class KarasumalineSpider(scrapy.Spider):
     name = 'karasumaline'
@@ -22,11 +24,11 @@ class KarasumalineSpider(scrapy.Spider):
             )
 
     def parse_table(self, response, updown):
-        timetable = {
-            'station': response.css('div.tt-hed-title::text').get(),
-            'up_or_down': updown,
-            'departures': [],
-        }
+        timetable=KyotosubwayItem(
+            station=response.css('div.tt-hed-title::text').get(),
+            up_or_down=updown,
+            departures=[],
+        )
         for line in response.css('table tr.time.wektime'):
             hour = line.css('td.heijitsu-tt h3::text').get()
             for td in line.css('td'):
