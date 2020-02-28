@@ -1,3 +1,5 @@
-psql-data
+/pgsql-data/*
+!/pgsql-data/.gitkeep
+
 out.json
 .mypy_cache
