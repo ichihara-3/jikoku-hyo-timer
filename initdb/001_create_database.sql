@@ -1,0 +1,2 @@
+CREATE DATABASE transportation ENCODING = UTF8;
+
