@@ -1,5 +1,7 @@
 CREATE DATABASE transportation ENCODING = UTF8;
 
+\connect transportation
+
 CREATE TABLE timetables (
   id SERIAL,
   station_id INT,
