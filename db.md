@@ -13,7 +13,7 @@
 - train_schedule_type_id ダイヤ種別ID INT: FK
 - direction_id 方面ID INT: FK
 - destination_id 行先ID INT: FK
-- time 時刻 TIMESTAMP
+- departure_time 時刻 TIMESTAMP
 
 UNIQUE(駅ID, 路線ID, ダイヤ種別ID, 方面ID, 行先ID, 時刻)
 
