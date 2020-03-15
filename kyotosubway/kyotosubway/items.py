@@ -10,5 +10,8 @@ import scrapy
 
 class KyotosubwayItem(scrapy.Item):
     station = scrapy.Field()
-    up_or_down = scrapy.Field()
+    line = scrapy.Field()
+    train_schedule_type = scrapy.Field()
+    direction = scrapy.Field()
+    destination = scrapy.Field()
     departures = scrapy.Field()

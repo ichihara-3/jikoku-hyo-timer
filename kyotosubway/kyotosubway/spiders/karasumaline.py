@@ -1,13 +1,36 @@
 # -*- coding: utf-8 -*-
 import datetime
 import logging
+from typing import Tuple
+
 import scrapy
 
 from kyotosubway.items import KyotosubwayItem
 
 
+class ScheduleType:
+
+    def __init__(self, name: str, tags: Tuple[str]):
+        self.name = name
+        self.tags = tags
+
+
 class KarasumalineSpider(scrapy.Spider):
     name = 'karasumaline'
+    linename = '烏丸線'
+    schedule_types = (
+        ScheduleType('平日', (
+            'table tr.time.wektime',
+            'td.heijitsu-tt h3::text',
+             'span.disptnwek',
+            )),
+        ScheduleType('土休日',
+            (
+            'table tr.time.holtime',
+            'td.kyujitsu-tt h3::text',
+             'span.disptnhol',
+            )),
+    )
     allowed_domains = ['www2.city.kyoto.lg.jp']
     start_urls = ['http://www2.city.kyoto.lg.jp/kotsu/tikadia/hyperdia/line02.htm']
 
@@ -24,27 +47,32 @@ class KarasumalineSpider(scrapy.Spider):
             )
 
     def parse_table(self, response, updown):
-        timetable=KyotosubwayItem(
-            station=response.css('div.tt-hed-title::text').get(),
-            up_or_down=updown,
-            departures=[],
-        )
-        for line in response.css('table tr.time.wektime'):
-            hour = line.css('td.heijitsu-tt h3::text').get()
-            for td in line.css('td'):
-                for span in td.css('span.disptnwek'):
-                    minute = span.css('::text').get()
-                    if not minute.isdigit():
-                        continue
-                    dest_keyword = span.css('span span span::text').get()
-                    departure = Departure(hour=int(hour), minute=int(minute), dest_keyword=dest_keyword, updown=updown)
-                    timetable['departures'].append({'time': departure.time.strftime('%H:%M'), 'dest': departure.destination})
-        yield timetable
+        for schedule_type in self.schedule_types:
+            timetable=KyotosubwayItem(
+                station=response.css('div.tt-hed-title::text').get(),
+                line=self.linename,
+                direction=updown,
+                departures=[],
+            )
+            timetable['train_schedule_type'] = schedule_type.name
+            for line in response.css(schedule_type.tags[0]):
+                hour = line.css(schedule_type.tags[1]).get()
+                for td in line.css('td'):
+                    for span in td.css(schedule_type.tags[2]):
+                        for minute in span.css('::text').getall():
+                            if minute.isdigit():
+                                break
+                        else:
+                            continue
+                        dest_keyword = span.css('span span span::text').get()
+                        departure = Departure(hour=int(hour), minute=int(minute), dest_keyword=dest_keyword, updown=updown)
+                        timetable['departures'].append({'time': departure.time.strftime('%H:%M'), 'dest': departure.destination})
+            yield timetable
 
 
 class Destinations:
 
-    _stations_map = {
+    destination_map = {
         '下り': {
             '新': '普通 新田辺行き',
             '奈': '急行 近鉄奈良行き',
@@ -57,7 +85,8 @@ class Destinations:
 
     @classmethod
     def get_destionation_by(cls, updown='上り', keyword=None):
-        return cls._stations_map.get(updown, {}).get(keyword, None)
+        return cls.destination_map.get(updown, {}).get(keyword, None)
+
 
 class Departure:
     def __init__(self, hour: int, minute: int, dest_keyword: str, updown: str):
