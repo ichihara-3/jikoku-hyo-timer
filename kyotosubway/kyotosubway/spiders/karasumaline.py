@@ -8,7 +8,7 @@ import scrapy
 from kyotosubway.items import KyotosubwayItem
 
 
-class ScheduleType:
+class Schedule:
 
     def __init__(self, name: str, tags: Tuple[str]):
         self.name = name
@@ -19,12 +19,12 @@ class KarasumalineSpider(scrapy.Spider):
     name = 'karasumaline'
     linename = '烏丸線'
     schedule_types = (
-        ScheduleType('平日', (
+        Schedule('平日', (
             'table tr.time.wektime',
             'td.heijitsu-tt h3::text',
              'span.disptnwek',
             )),
-        ScheduleType('土休日',
+        Schedule('土休日',
             (
             'table tr.time.holtime',
             'td.kyujitsu-tt h3::text',
