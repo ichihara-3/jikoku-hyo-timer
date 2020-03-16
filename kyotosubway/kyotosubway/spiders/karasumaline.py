@@ -65,8 +65,7 @@ class KarasumalineSpider(scrapy.Spider):
                         else:
                             continue
                         dest_keyword = span.css('span span span::text').get()
-                        departure = Departure(hour=int(hour), minute=int(minute), dest_keyword=dest_keyword, updown=updown)
-                        timetable['departures'].append({'time': departure.time.strftime('%H:%M'), 'dest': departure.destination})
+                        timetable['departures'].append(Departure(hour=int(hour), minute=int(minute), dest_keyword=dest_keyword, updown=updown))
             yield timetable
 
 

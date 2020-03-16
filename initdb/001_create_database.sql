@@ -57,3 +57,13 @@ CREATE TABLE timetables (
   UNIQUE (station_id, line_id, train_schedule_type_id, direction_id, destination_id, departure_time)
 );
 
+CREATE TABLE timetables_name (
+  id SERIAL NOT NULL,
+  station VARCHAR(255) NOT NULL,
+  line VARCHAR(255) NOT NULL,
+  train_schedule_type VARCHAR(255) NOT NULL,
+  direction VARCHAR(255) NOT NULL,
+  destination VARCHAR(255) NOT NULL,
+  departure_time TIME NOT NULL,
+  PRIMARY KEY (id)
+);
